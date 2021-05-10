@@ -27,5 +27,17 @@ port = 8001
 sAddress = (hostip, port)
 print('Connected to ', sAddress, '...')
 
-msg = b'Ola mundo!'
+msg = b'Connection stablished!'
 clientSocket.sendto(msg, sAddress)
+
+while True:
+    packet,_ = clientSocket.recvfrom(BUFFSIZE)
+    data = base64.b85decode(packet, '/')
+    npdata = np.fromstring(data, dtype=np.uint8)
+    frame = cv2.imdecode(npdata, 1)
+    cv2.imshow('RECEIVING VIDEO...', frame)
+    key = cv2.waitKey(1) & 0xFF
+    if(key == ord('q')):
+        print("Client stopped\n")
+        clientSocket.close()
+        break

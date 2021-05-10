@@ -23,7 +23,7 @@ try:
 except:
     hostip = '192.168.1.65' #meu IP
 port = 8001
-#print("Address:  =>", (hostip+':'+str(port)), '\n')
+#print("Address =>", (hostip+':'+str(port)), '\n')
 
 sAddress = (hostip, port)
 serverSocket.bind(sAddress)
@@ -36,4 +36,17 @@ fps, st, framesToCount, cnt = (0,0,20,0)
 while True:
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)
     print('GOT connection from', cAddress)
-    print(msg)
+    WIDTH=400
+    while(vid.isOpened()):
+        _,frame = vid.read()
+        frame = imutils.resize(frame, width=WIDTH)
+        encoded, buffer = cv2.imencode('.jpg', frame, [cv1, IMWRITE_JPEG_QUALITY,80])
+        message = base64.b64encode(buffer)
+
+        serverSocket.sendto(message, cAddress)
+        cv2.imshow('TRANSMITTING VIDEO...',frame)
+        key = cv2.waitKey(1) & 0xFF
+        if (key == ord('q')):
+            print("Server stopped\n")
+            serverSocket.close()
+            break
