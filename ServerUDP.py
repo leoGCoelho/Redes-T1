@@ -29,33 +29,40 @@ sAddress = (hostip, port)
 serverSocket.bind(sAddress)
 print('Server running at', sAddress, '...')
 
-vid = cv2.VideoCapture('tres_espias_demais.mp4')
 fps, st, framesToCount, cnt = (0,0,20,0)
 
 
 while True:
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)
     print('GOT connection from', cAddress)
-    WIDTH=400
-    while(vid.isOpened()):
-        _,frame = vid.read()
-        frame = imutils.resize(frame, width=WIDTH)
-        encoded, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY,80])
-        message = base64.b64encode(buffer)
+    print(msg)
 
-        serverSocket.sendto(message, cAddress)
-        frame = cv2.putText(frame, ('FPS: '+str(fps)), (10,40), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 2)
-        cv2.imshow('TRANSMITTING VIDEO...',frame)
-        key = cv2.waitKey(1) & 0xFF
-        if (key == ord('q')):
-            print("Server stopped\n")
-            serverSocket.close()
-            break
-        if cnt == framesToCount:
-            try:
-                fps = round(framesToCount / (time.time() - st))
-                st = time.time()
-                cnt = 0
-            except:
-                pass
-        cnt+=1
+    try:
+        if('.mp4' in msg):
+            filename = cv2.VideoCapture(msg)
+            WIDTH=400
+            while(filename.isOpened()):
+                _,frame = filename.read()
+                frame = imutils.resize(frame, width=WIDTH)
+                encoded, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY,80])
+                message = base64.b64encode(buffer)
+
+                serverSocket.sendto(message, cAddress)
+                frame = cv2.putText(frame, ('FPS: '+str(fps)), (10,40), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 2)
+                cv2.imshow('TRANSMITTING VIDEO...',frame)
+                key = cv2.waitKey(1) & 0xFF
+                if (key == ord('q')):
+                    print("Server stopped\n")
+                    serverSocket.close()
+                    break
+                if cnt == framesToCount:
+                    try:
+                        fps = round(framesToCount / (time.time() - st))
+                        st = time.time()
+                        cnt = 0
+                    except:
+                        pass
+                cnt+=1
+    except:
+        msg = 'File not found!\n'
+        clientSocket.sendto(msg, sAddress)

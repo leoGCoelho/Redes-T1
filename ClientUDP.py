@@ -25,30 +25,40 @@ port = 8001
 #print("Connected to =>", (hostip+':'+str(port)), '\n')
 
 sAddress = (hostip, port)
-print('Connected to ', sAddress, '...')
+print('Connected to ', sAddress, '...\n')
 
-msg = b'Connection stablished!'
+try:
+    msg = argv[2]
+except:
+    print('Please add filename to arguments\n')
+    exit()
+
 clientSocket.sendto(msg, sAddress)
 fps, st, framesToCount, cnt = (0,0,20,0)
 
 while True:
-    packet,_ = clientSocket.recvfrom(BUFFSIZE)
-    data = base64.b64decode(packet, ' /')
-    npdata = np.fromstring(data, dtype=np.uint8)
-    frame = cv2.imdecode(npdata, 1)
+    if('.mp4' in msg):
+        packet,_ = clientSocket.recvfrom(BUFFSIZE)
+        data = base64.b64decode(packet, ' /')
+        npdata = np.fromstring(data, dtype=np.uint8)
+        frame = cv2.imdecode(npdata, 1)
 
-    frame = cv2.putText(frame, ('FPS: '+str(fps)), (10,40), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 2)
-    cv2.imshow('RECEIVING VIDEO...', frame)
-    key = cv2.waitKey(1) & 0xFF
-    if(key == ord('q')):
-        print("Client stopped\n")
-        clientSocket.close()
-        break
-    if cnt == framesToCount:
+        frame = cv2.putText(frame, ('FPS: '+str(fps)), (10,40), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.imshow('RECEIVING VIDEO...', frame)
+        key = cv2.waitKey(1) & 0xFF
+        if(key == ord('q')):
+            print("Client stopped\n")
+            clientSocket.close()
+            break
+        if cnt == framesToCount:
             try:
                 fps = round(framesToCount / (time.time() - st))
                 st = time.time()
                 cnt = 0
             except:
                 pass
-        cnt+=1
+            cnt+=1
+
+    else:
+        msg, cAddress = clientSocket.recvfrom(BUFFSIZE)
+        print(msg)
