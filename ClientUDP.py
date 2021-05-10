@@ -28,7 +28,7 @@ sAddress = (hostip, port)
 print('Connected to ', sAddress, '...\n')
 
 try:
-    msg = argv[2]
+    msg = str.encode(argv[2])
 except:
     print('Please add filename to arguments\n')
     exit()
@@ -37,7 +37,7 @@ clientSocket.sendto(msg, sAddress)
 fps, st, framesToCount, cnt = (0,0,20,0)
 
 while True:
-    if('.mp4' in msg):
+    if('.mp4' in argv[2]):
         packet,_ = clientSocket.recvfrom(BUFFSIZE)
         data = base64.b64decode(packet, ' /')
         npdata = np.fromstring(data, dtype=np.uint8)

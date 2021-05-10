@@ -35,11 +35,12 @@ fps, st, framesToCount, cnt = (0,0,20,0)
 while True:
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)
     print('GOT connection from', cAddress)
-    print(msg)
+    filen = msg.decode("utf-8")
+    print(filen) 
 
     try:
-        if('.mp4' in msg):
-            filename = cv2.VideoCapture(msg)
+        if('.mp4' in filen):
+            filename = cv2.VideoCapture(filen)
             WIDTH=400
             while(filename.isOpened()):
                 _,frame = filename.read()
@@ -65,4 +66,4 @@ while True:
                 cnt+=1
     except:
         msg = 'File not found!\n'
-        clientSocket.sendto(msg, sAddress)
+        serverSocket.sendto(msg, sAddress)
