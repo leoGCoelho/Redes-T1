@@ -3,7 +3,7 @@
 
 import cv2, imutils, socket
 import numpy as np
-import time, os
+import time, os, sys
 import base64
 import threading, wave, pyaudio,pickle,struct
 # For details visit pyshine.com
@@ -13,7 +13,7 @@ BREAK = False
 client_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 client_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
 host_name = socket.gethostname()
-host_ip = '192.168.1.65'#  socket.gethostbyname(host_name)
+host_ip = sys.argv[1]#  socket.gethostbyname(host_name)
 print(host_ip)
 port = 8081
 message = b'Hello'
