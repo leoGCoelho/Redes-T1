@@ -1,13 +1,24 @@
 # This is server code to send video and audio frames over UDP/TCP
 
-import cv2, imutils, socket
-import numpy as np
-import time
-import base64
-import threading, wave, pyaudio,pickle,struct
-import sys
-import queue
 import os
+try:
+    import cv2, imutils, socket
+    import numpy as np
+    import time
+    import base64
+    import threading, wave, pyaudio,pickle,struct
+    import sys
+    import queue
+except:
+    os.system('pip install -r requirements.txt')
+    import cv2, imutils, socket
+    import numpy as np
+    import time
+    import base64
+    import threading, wave, pyaudio,pickle,struct
+    import sys
+    import queue
+
 # For details visit pyshine.com
 q = queue.Queue(maxsize=10)
 
