@@ -1,12 +1,20 @@
 # Welcome to PyShine
 # This is client code to receive video and audio frames over UDP/TCP
 
-import cv2, imutils, socket
-import numpy as np
-import time, os, sys
-import base64
-import threading, wave, pyaudio,pickle,struct
-# For details visit pyshine.com
+try:
+    import cv2, imutils, socket
+    import numpy as np
+    import time, os, sys
+    import base64
+    import threading, wave, pyaudio,pickle,struct
+except:
+    os.system('pip install -r requirements.txt')
+    import cv2, imutils, socket
+    import numpy as np
+    import time, os, sys
+    import base64
+    import threading, wave, pyaudio,pickle,struct
+
 BUFF_SIZE = 65536
 
 BREAK = False
