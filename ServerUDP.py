@@ -1,13 +1,10 @@
 # This is server code to send video and audio frames over UDP/TCP
 
-import os
+import os, sys, time, base64,socket
 from time import sleep
 try:
-    import cv2, imutils, socket
-    import time
-    import base64
+    import cv2, imutils
     import wave, pickle, struct
-    import sys
     import queue
     from concurrent.futures import ThreadPoolExecutor
 except:
@@ -36,7 +33,7 @@ def VideoBufferCreate():
 def VideoStreaming():
     sleep(1)
     global vidTS
-    fps,st,frames_to_count,cnt = (0,0,1,0)
+    fps, st, ftc, cnt = (0,0,1,0)
     cv2.namedWindow(('Transmitindo ' + filename + '...'))        
     cv2.moveWindow(('Transmitindo ' + filename + '...'), 10, 30) 
     while True:
@@ -46,9 +43,9 @@ def VideoStreaming():
         serverSocket.sendto(frameData, cAddress)
 
         frame = cv2.putText(frame, 'FPS: '+str(round(fps,1)), (10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        if cnt == frames_to_count:
+        if cnt == ftc:
             try:
-                fps = (frames_to_count/(time.time()-st))
+                fps = (ftc/(time.time()-st))
                 st=time.time()
                 cnt=0
                 if fps>vidFPS:
@@ -86,10 +83,10 @@ def AudioStreaming():
                 clientSocket.sendall(audioData)
 
 
-
 global audiofile
 videoBuffer = queue.Queue(maxsize=10)
 BUFFSIZE = 65536
+
 serverIP = sys.argv[1]
 serverPort = 8081
 

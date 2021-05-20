@@ -1,19 +1,17 @@
 # Welcome to PyShine
 # This is client code to receive video and audio frames over UDP/TCP
 
+import threading, time, os, sys, base64, socket
 try:
-    import cv2, socket
     import numpy as np
-    import time, os, sys
-    import base64
-    import threading, pyaudio, pickle, struct
+    import cv2
+    import pyaudio, pickle, struct
 except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
     os._exit(1)
 
 
 def AudioStreaming():
-	
 	audioBuffer = pyaudio.PyAudio()
 	CHUNK = 1024
 	stream = audioBuffer.open(format=audioBuffer.get_format_from_width(2), channels=2, rate=44100, output=True, frames_per_buffer=CHUNK)
@@ -26,17 +24,22 @@ def AudioStreaming():
 	print("Conexao com", sAddress, "estabelecida...\n")
 	data = b""
 	dataSize = struct.calcsize("Q")
+	
 	while True:
 		try:
 			while len(data) < dataSize:
 				package = clientSocket.recv(4*1024)
-				if not package: break
-				data+=package
+				if not package: 
+					break
+				data += package
+
 			packageSize = data[:dataSize]
 			data = data[dataSize:]
 			msgSize = struct.unpack("Q",packageSize)[0]
+
 			while len(data) < msgSize:
 				data += clientSocket.recv(4*1024)
+
 			frame_data = data[:msgSize]
 			data  = data[msgSize:]
 			frame = pickle.loads(frame_data)
@@ -52,11 +55,12 @@ def AudioStreaming():
 
 
 BUFFSIZE = 65536
-
 BREAK = False
+
 clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
 hostname = socket.gethostname()
+
 clientIP = sys.argv[1]
 clientPort = 8081
 
@@ -75,7 +79,7 @@ try:
 
 		cv2.namedWindow(('Recebendo ' + sys.argv[1] + '...'))        
 		cv2.moveWindow(('Recebendo ' + sys.argv[1] + '...'), 10,360) 
-		fps,st,frames_to_count,cnt = (0,0,20,0)
+		fps,st,ftc,cnt = (0,0,20,0)
 
 
 		while True:
@@ -93,17 +97,14 @@ try:
 				os._exit(1)
 				break
 
-			if cnt == frames_to_count:
+			if cnt == ftc:
 				try:
-					fps = round(frames_to_count/(time.time()-st),1)
-					st=time.time()
-					cnt=0
+					fps = round(ftc/(time.time()-st),1)
+					st = time.time()
+					cnt = 0
 				except:
 					pass
 			cnt+=1
-			
-		clientSocket.close()
-		cv2.destroyAllWindows() 
 
 	elif('.wav' in sys.argv[2]):
 		AudioStreaming()
