@@ -1,5 +1,4 @@
-# Welcome to PyShine
-# This is client code to receive video and audio frames over UDP/TCP
+# Nome: Leonardo Gularte Coelho
 
 import threading, time, os, sys, base64, socket
 try:
@@ -11,21 +10,53 @@ except:
     os._exit(1)
 
 
+def VideoStreaming():
+	cv2.namedWindow(('Recebendo ' + sys.argv[1] + '...'))        
+	cv2.moveWindow(('Recebendo ' + sys.argv[1] + '...'), 10,360) 
+	fps,st,ftc,cnt = (0,0,20,0)								# dados de contagem dos frames
+
+
+	while True:
+		package,_ = clientSocket.recvfrom(BUFFSIZE)			# recebe os frames do video via UDP
+		data = base64.b64decode(package,' /')
+		npdata = np.fromstring(data,dtype=np.uint8)
+
+		frame = cv2.imdecode(npdata,1)						# decodifica imagem recebida		
+		#frame = cv2.putText(frame,'FPS: '+str(fps),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)		# legenda com os frames da reproducao
+		cv2.imshow(('Recebendo ' + sys.argv[1] + '...'),frame)	# mostra frame na tela
+		key = cv2.waitKey(1) & 0xFF
+		
+		if key == ord('q'):									# caso 'q' seja apertado, fecha video
+			clientSocket.close()
+			os._exit(1)
+			break
+
+		if cnt == ftc:										# sincroniza velocidade de frames do video
+			try:
+				fps = round(ftc/(time.time()-st),1)
+				st = time.time()
+				cnt = 0
+			except:
+				pass
+		cnt+=1
+
+
+# Recebendo o arquivo WAV via TCP e reproduz em paralelo
 def AudioStreaming():
+	# abre um canal para reproducao do audio
 	audioBuffer = pyaudio.PyAudio()
 	CHUNK = 1024
 	stream = audioBuffer.open(format=audioBuffer.get_format_from_width(2), channels=2, rate=44100, output=True, frames_per_buffer=CHUNK)
 					
-	# create socket
 	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	sAddress = (clientIP,clientPort-1)
 
-	clientSocket.connect(sAddress) 
+	clientSocket.connect(sAddress)								# abre conexao com o servidor para receber os dados via TCP
 	print("Conexao com", sAddress, "estabelecida...\n")
 	data = b""
 	dataSize = struct.calcsize("Q")
-	
-	while True:
+
+	while True:													# reproduz dados recebidos do servidor
 		try:
 			while len(data) < dataSize:
 				package = clientSocket.recv(4*1024)
@@ -40,9 +71,9 @@ def AudioStreaming():
 			while len(data) < msgSize:
 				data += clientSocket.recv(4*1024)
 
-			frame_data = data[:msgSize]
+			frameData = data[:msgSize]
 			data  = data[msgSize:]
-			frame = pickle.loads(frame_data)
+			frame = pickle.loads(frameData)
 			stream.write(frame)
 
 		except:
@@ -53,65 +84,39 @@ def AudioStreaming():
 	os._exit(1)
 
 
-
+# Main
+# variaveis globais
 BUFFSIZE = 65536
 BREAK = False
 
+# dados de conexao
 clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
 hostname = socket.gethostname()
-
 clientIP = sys.argv[1]
 clientPort = 8081
 
 try:
-    msg = str.encode(sys.argv[2])
+    msg = str.encode(sys.argv[2])								# codifica endereco do arquivo
 except:
     print('Please add filename to arguments\n')
     os._exit(1)
 
-clientSocket.sendto(msg,(clientIP,clientPort))
+clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
 try:
-	if('.mp4' in sys.argv[2]):
+	if('.mp4' in sys.argv[2]):									# se arquivo for um video
 		t1 = threading.Thread(target=AudioStreaming, args=())
-		t1.start()
+		t1.start()												# paraleliza audio para reproduzir junto aos frames
 
-		cv2.namedWindow(('Recebendo ' + sys.argv[1] + '...'))        
-		cv2.moveWindow(('Recebendo ' + sys.argv[1] + '...'), 10,360) 
-		fps,st,ftc,cnt = (0,0,20,0)
+		VideoStreaming()										# reproduz video
 
+	elif('.wav' in sys.argv[2]):								# caso o arquivo um audio
+		AudioStreaming()										# recebe os dados via TCP
 
-		while True:
-			package,_ = clientSocket.recvfrom(BUFFSIZE)
-			data = base64.b64decode(package,' /')
-			npdata = np.fromstring(data,dtype=np.uint8)
-
-			frame = cv2.imdecode(npdata,1)
-			frame = cv2.putText(frame,'FPS: '+str(fps),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)
-			cv2.imshow("RECEIVING VIDEO",frame)
-			key = cv2.waitKey(1) & 0xFF
-			
-			if key == ord('q'):
-				clientSocket.close()
-				os._exit(1)
-				break
-
-			if cnt == ftc:
-				try:
-					fps = round(ftc/(time.time()-st),1)
-					st = time.time()
-					cnt = 0
-				except:
-					pass
-			cnt+=1
-
-	elif('.wav' in sys.argv[2]):
-		AudioStreaming()
-
-	else:
-		print('Formato invalido!')
+	else:														# caso seja outro tipo de arquivo, da erro
+		print('Formato invalido!')							
 
 except:
-	print('Erro durante a conexão. Por favor tente novamente!\n')
+	print('Erro durante a conexão. Por favor tente novamente!\n')	# caso o arquivo nao esteja no servidor, da erro
 	os._exit(1)
