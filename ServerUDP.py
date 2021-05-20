@@ -25,7 +25,7 @@ def VideoBufferCreate():
     while(vid.isOpened()):
         try:
             _,frame = vid.read()
-            frame = imutils.resize(frame,width=WIDTH)
+            frame = imutils.resize(frame, width=WIDTH)
             videoBuffer.put(frame)
         except:
             os._exit(1)
@@ -33,18 +33,18 @@ def VideoBufferCreate():
     vid.release()
 
 def VideoStreaming():
-    #sleep(1.5)
+    sleep(1)
     global vidTS
     fps,st,frames_to_count,cnt = (0,0,1,0)
     cv2.namedWindow(('Transmitindo ' + filename + '...'))        
-    cv2.moveWindow(('Transmitindo ' + filename + '...'), 10,30) 
+    cv2.moveWindow(('Transmitindo ' + filename + '...'), 10, 30) 
     while True:
         frame = videoBuffer.get()
-        encoded,buffer = cv2.imencode('.jpeg',frame,[cv2.IMWRITE_JPEG_QUALITY,80])
+        encoded,buffer = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
         frameData = base64.b64encode(buffer)
-        serverSocket.sendto(frameData,cAddress)
+        serverSocket.sendto(frameData, cAddress)
 
-        frame = cv2.putText(frame,'FPS: '+str(round(fps,1)),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)
+        frame = cv2.putText(frame, 'FPS: '+str(round(fps,1)), (10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         if cnt == frames_to_count:
             try:
                 fps = (frames_to_count/(time.time()-st))
@@ -81,7 +81,7 @@ def AudioStreaming():
             while True:
                 data = wf.readframes(CHUNK)
                 a = pickle.dumps(data)
-                audioData = struct.pack("Q",len(a))+a
+                audioData = struct.pack("Q", len(a)) + a
                 clientSocket.sendall(audioData)
 
 
@@ -91,13 +91,13 @@ BUFFSIZE = 65536
 serverIP = sys.argv[1]
 serverPort = 8081
 
-serverSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-serverSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
+serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,BUFFSIZE)
 hostname = socket.gethostname()
 
-sAddress = (serverIP,serverPort)
+sAddress = (serverIP, serverPort)
 serverSocket.bind(sAddress)
-print('The server started at',sAddress)
+print('The server started at', sAddress)
 
 while True:
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)
@@ -118,7 +118,7 @@ while True:
         vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
         duration = float(vidTNF) / float(vidFPS)
         d = vid.get(cv2.CAP_PROP_POS_MSEC)
-        print(duration,d)
+        print(duration, d)
             
         with ThreadPoolExecutor(max_workers=3) as executor:
             executor.submit(AudioStreaming)
@@ -126,5 +126,6 @@ while True:
             executor.submit(VideoStreaming)
     except:
         msg = "Arquivo " + filename + " não encontrado!"
-        msg = msg.decode("utf-8")
-        serverSocket.sendto(msg,(serverIP,serverPort))
+        msg = msg.encode("utf-8")
+        serverSocket.sendto(msg, (serverIP, serverPort))
+        os._exit(1)
