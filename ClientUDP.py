@@ -2,67 +2,43 @@
 # This is client code to receive video and audio frames over UDP/TCP
 
 try:
-    import cv2, imutils, socket
+    import cv2, socket
     import numpy as np
     import time, os, sys
     import base64
-    import threading, wave, pyaudio,pickle,struct
+    import threading, pyaudio, pickle, struct
 except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
     exit()
 
-BUFF_SIZE = 65536
-
-BREAK = False
-client_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-client_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
-host_name = socket.gethostname()
-host_ip = sys.argv[1]#  socket.gethostbyname(host_name)
-print(host_ip)
-port = 8081
-try:
-    msg = sys.argv[2]
-    msg = str.encode(sys.argv[2])
-except:
-    print('Please add filename to arguments\n')
-    exit()
-
-client_socket.sendto(msg,(host_ip,port))
-
-
-
 
 def AudioStreaming():
 	
-	p = pyaudio.PyAudio()
+	audioBuffer = pyaudio.PyAudio()
 	CHUNK = 1024
-	stream = p.open(format=p.get_format_from_width(2),
-					channels=2,
-					rate=44100,
-					output=True,
-					frames_per_buffer=CHUNK)
+	stream = audioBuffer.open(format=audioBuffer.get_format_from_width(2), channels=2, rate=44100, output=True, frames_per_buffer=CHUNK)
 					
 	# create socket
-	client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	socket_address = (host_ip,port-1)
-	print('server listening at',socket_address)
-	client_socket.connect(socket_address) 
-	print("CLIENT CONNECTED TO",socket_address)
+	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	sAddress = (clientIP,clientPort-1)
+
+	clientSocket.connect(sAddress) 
+	print("Conexao com", sAddress, "estabelecida...\n")
 	data = b""
-	payload_size = struct.calcsize("Q")
+	dataSize = struct.calcsize("Q")
 	while True:
 		try:
-			while len(data) < payload_size:
-				packet = client_socket.recv(4*1024) # 4K
-				if not packet: break
-				data+=packet
-			packed_msg_size = data[:payload_size]
-			data = data[payload_size:]
-			msg_size = struct.unpack("Q",packed_msg_size)[0]
-			while len(data) < msg_size:
-				data += client_socket.recv(4*1024)
-			frame_data = data[:msg_size]
-			data  = data[msg_size:]
+			while len(data) < dataSize:
+				package = clientSocket.recv(4*1024)
+				if not package: break
+				data+=package
+			packageSize = data[:dataSize]
+			data = data[dataSize:]
+			msgSize = struct.unpack("Q",packageSize)[0]
+			while len(data) < msgSize:
+				data += clientSocket.recv(4*1024)
+			frame_data = data[:msgSize]
+			data  = data[msgSize:]
 			frame = pickle.loads(frame_data)
 			stream.write(frame)
 
@@ -70,21 +46,39 @@ def AudioStreaming():
 			
 			break
 
-	client_socket.close()
+	clientSocket.close()
 	print('Audio closed',BREAK)
-	os._exit(1)
-	
+	exit()
 
+
+
+BUFF_SIZE = 65536
+
+BREAK = False
+clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
+hostname = socket.gethostname()
+clientIP = sys.argv[1]
+clientPort = 8081
+
+try:
+    msg = str.encode(sys.argv[2])
+except:
+    print('Please add filename to arguments\n')
+    exit()
+
+clientSocket.sendto(msg,(clientIP,clientPort))
 
 t1 = threading.Thread(target=AudioStreaming, args=())
 t1.start()
 
-cv2.namedWindow('RECEIVING VIDEO')        
-cv2.moveWindow('RECEIVING VIDEO', 10,360) 
+cv2.namedWindow(('Recebendo ' + sys.argv[1] + '...'))        
+cv2.moveWindow(('Recebendo ' + sys.argv[1] + '...'), 10,360) 
 fps,st,frames_to_count,cnt = (0,0,20,0)
+
 while True:
-	packet,_ = client_socket.recvfrom(BUFF_SIZE)
-	data = base64.b64decode(packet,' /')
+	package,_ = clientSocket.recvfrom(BUFF_SIZE)
+	data = base64.b64decode(package,' /')
 	npdata = np.fromstring(data,dtype=np.uint8)
 
 	frame = cv2.imdecode(npdata,1)
@@ -93,8 +87,8 @@ while True:
 	key = cv2.waitKey(1) & 0xFF
 	
 	if key == ord('q'):
-		client_socket.close()
-		os._exit(1)
+		clientSocket.close()
+		exit()
 		break
 
 	if cnt == frames_to_count:
@@ -106,6 +100,5 @@ while True:
 			pass
 	cnt+=1
 	
-		
-client_socket.close()
+clientSocket.close()
 cv2.destroyAllWindows() 
