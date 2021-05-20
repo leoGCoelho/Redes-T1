@@ -14,6 +14,13 @@ except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
     os._exit(1)
 
+
+def ConvertedAudioBufferCreate():
+    command = "del /f temp.wav"
+    os.system(command)
+    command = "ffmpeg -i " + filename + " -acodec pcm_u8 -ar 22050 temp.wav"
+    os.system(command)
+
 def AudioBufferCreate():
     command = "del /f temp.wav"
     os.system(command)
@@ -64,7 +71,6 @@ def VideoStreaming():
         key = cv2.waitKey(int(1000*vidTS)) & 0xFF	
         if key == ord('q'):
             os._exit(1)	
-                
 
 def AudioStreaming():
     audioSocket = socket.socket()
@@ -127,7 +133,10 @@ while True:
                 executor.submit(VideoBufferCreate)
                 executor.submit(VideoStreaming)
 
-        #elif('.mp4' in filename):
+        elif('.mp3' in filename):
+            ConvertedAudioBufferCreate()
+            AudioStreaming()
+
         else:
             print('Formato invalido!')
 

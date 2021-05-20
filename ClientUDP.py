@@ -105,6 +105,9 @@ try:
 		clientSocket.close()
 		cv2.destroyAllWindows() 
 
+	elif('.mp3' in sys.argv[2]):
+		AudioStreaming()
+
 	else:
 		print('Formato invalido!')
 
