@@ -15,12 +15,6 @@ except:
     os._exit(1)
 
 
-def ConvertedAudioBufferCreate():
-    command = "del /f temp.wav"
-    os.system(command)
-    command = "ffmpeg -i " + filename + " -acodec pcm_u8 -ar 22050 temp.wav"
-    os.system(command)
-
 def AudioBufferCreate():
     command = "del /f temp.wav"
     os.system(command)
@@ -73,12 +67,13 @@ def VideoStreaming():
             os._exit(1)	
 
 def AudioStreaming():
+    global audiofile
     audioSocket = socket.socket()
     audioSocket.bind((serverIP, (serverPort-1)))
 
     audioSocket.listen(5)
     CHUNK = 1024
-    wf = wave.open("temp.wav", 'rb')
+    wf = wave.open(audiofile, 'rb')
 
     clientSocket,addr = audioSocket.accept()
 
@@ -92,6 +87,7 @@ def AudioStreaming():
 
 
 
+global audiofile
 videoBuffer = queue.Queue(maxsize=10)
 BUFFSIZE = 65536
 serverIP = sys.argv[1]
@@ -114,6 +110,7 @@ while True:
     
     if(os.path.isfile(filename)):
         if('.mp4' in filename):
+            audiofile = "temp.wav"
             print(filename)
 
             AudioBufferCreate()
@@ -133,8 +130,8 @@ while True:
                 executor.submit(VideoBufferCreate)
                 executor.submit(VideoStreaming)
 
-        elif('.mp3' in filename):
-            ConvertedAudioBufferCreate()
+        elif('.wav' in filename):
+            audiofile = filename
             AudioStreaming()
 
         else:
