@@ -67,45 +67,47 @@ except:
     os._exit(1)
 
 clientSocket.sendto(msg,(clientIP,clientPort))
-status, cAddress = clientSocket.recvfrom(BUFFSIZE)
-status = status.decode("utf-8")
 
-if(status == 'Ok'):
-	t1 = threading.Thread(target=AudioStreaming, args=())
-	t1.start()
+try:
+	if('.mp4' in sys.argv[2]):
+		t1 = threading.Thread(target=AudioStreaming, args=())
+		t1.start()
 
-	cv2.namedWindow(('Recebendo ' + sys.argv[1] + '...'))        
-	cv2.moveWindow(('Recebendo ' + sys.argv[1] + '...'), 10,360) 
-	fps,st,frames_to_count,cnt = (0,0,20,0)
+		cv2.namedWindow(('Recebendo ' + sys.argv[1] + '...'))        
+		cv2.moveWindow(('Recebendo ' + sys.argv[1] + '...'), 10,360) 
+		fps,st,frames_to_count,cnt = (0,0,20,0)
 
 
-	while True:
-		package,_ = clientSocket.recvfrom(BUFFSIZE)
-		data = base64.b64decode(package,' /')
-		npdata = np.fromstring(data,dtype=np.uint8)
+		while True:
+			package,_ = clientSocket.recvfrom(BUFFSIZE)
+			data = base64.b64decode(package,' /')
+			npdata = np.fromstring(data,dtype=np.uint8)
 
-		frame = cv2.imdecode(npdata,1)
-		frame = cv2.putText(frame,'FPS: '+str(fps),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)
-		cv2.imshow("RECEIVING VIDEO",frame)
-		key = cv2.waitKey(1) & 0xFF
-		
-		if key == ord('q'):
-			clientSocket.close()
-			os._exit(1)
-			break
+			frame = cv2.imdecode(npdata,1)
+			frame = cv2.putText(frame,'FPS: '+str(fps),(10,40),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),2)
+			cv2.imshow("RECEIVING VIDEO",frame)
+			key = cv2.waitKey(1) & 0xFF
+			
+			if key == ord('q'):
+				clientSocket.close()
+				os._exit(1)
+				break
 
-		if cnt == frames_to_count:
-			try:
-				fps = round(frames_to_count/(time.time()-st),1)
-				st=time.time()
-				cnt=0
-			except:
-				pass
-		cnt+=1
-		
-	clientSocket.close()
-	cv2.destroyAllWindows() 
+			if cnt == frames_to_count:
+				try:
+					fps = round(frames_to_count/(time.time()-st),1)
+					st=time.time()
+					cnt=0
+				except:
+					pass
+			cnt+=1
+			
+		clientSocket.close()
+		cv2.destroyAllWindows() 
 
-else:
-	print(status,'\n')
+	else:
+		print('Formato invalido!')
+
+except:
+	print('Erro durante a conexão. Por favor tente novamente!\n')
 	os._exit(1)

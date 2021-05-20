@@ -105,32 +105,32 @@ while True:
     filen = msg.decode("utf-8")
     print('Conexao com', cAddress, 'estabelecida...\n')
     filename = str(filen)
-
+    
     if(os.path.isfile(filename)):
-        status = "Ok"
-        status = status.encode("utf-8")
-        serverSocket.sendto(status, (serverIP, serverPort))
+        if('.mp4' in filename):
+            print(filename)
 
-        print(filename)
+            AudioBufferCreate()
 
-        AudioBufferCreate()
+            vid = cv2.VideoCapture(filename)
+            vidFPS = vid.get(cv2.CAP_PROP_FPS)
+            global vidTS
+            vidTS = (0.5/vidFPS)
+            print('FPS:',vidFPS,vidTS)
+            vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+            duration = float(vidTNF) / float(vidFPS)
+            d = vid.get(cv2.CAP_PROP_POS_MSEC)
+            print(duration, d)
+                
+            with ThreadPoolExecutor(max_workers=3) as executor:
+                executor.submit(AudioStreaming)
+                executor.submit(VideoBufferCreate)
+                executor.submit(VideoStreaming)
 
-        vid = cv2.VideoCapture(filename)
-        vidFPS = vid.get(cv2.CAP_PROP_FPS)
-        global vidTS
-        vidTS = (0.5/vidFPS)
-        print('FPS:',vidFPS,vidTS)
-        vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-        duration = float(vidTNF) / float(vidFPS)
-        d = vid.get(cv2.CAP_PROP_POS_MSEC)
-        print(duration, d)
-            
-        with ThreadPoolExecutor(max_workers=3) as executor:
-            executor.submit(AudioStreaming)
-            executor.submit(VideoBufferCreate)
-            executor.submit(VideoStreaming)
+        #elif('.mp4' in filename):
+        else:
+            print('Formato invalido!')
+
     else:
-        status = "Arquivo " + filename + " não encontrado!"
-        status = status.encode("utf-8")
-        serverSocket.sendto(status, (serverIP, serverPort))
+        print("Arquivo " + filename + " não encontrado!")
         os._exit(1)
