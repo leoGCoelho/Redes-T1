@@ -67,8 +67,10 @@ except:
     os._exit(1)
 
 clientSocket.sendto(msg,(clientIP,clientPort))
+status, cAddress = clientSocket.recvfrom(BUFFSIZE)
+status = status.decode("utf-8")
 
-try:
+if(status == 'Ok'):
 	t1 = threading.Thread(target=AudioStreaming, args=())
 	t1.start()
 
@@ -104,6 +106,6 @@ try:
 	clientSocket.close()
 	cv2.destroyAllWindows() 
 
-except:
-	print('Erro durante a conexão. Por favor tente novamente!\n')
+else:
+	print(status,'\n')
 	os._exit(1)

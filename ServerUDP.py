@@ -105,7 +105,12 @@ while True:
     filen = msg.decode("utf-8")
     print('Conexao com', cAddress, 'estabelecida...\n')
     filename = str(filen)
-    try:
+
+    if(os.path.isfile(filename)):
+        status = "Ok"
+        status = status.encode("utf-8")
+        serverSocket.sendto(status, (serverIP, serverPort))
+
         print(filename)
 
         AudioBufferCreate()
@@ -124,8 +129,8 @@ while True:
             executor.submit(AudioStreaming)
             executor.submit(VideoBufferCreate)
             executor.submit(VideoStreaming)
-    except:
-        msg = "Arquivo " + filename + " não encontrado!"
-        msg = msg.encode("utf-8")
-        serverSocket.sendto(msg, (serverIP, serverPort))
+    else:
+        status = "Arquivo " + filename + " não encontrado!"
+        status = status.encode("utf-8")
+        serverSocket.sendto(status, (serverIP, serverPort))
         os._exit(1)
