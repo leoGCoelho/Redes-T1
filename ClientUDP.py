@@ -9,7 +9,7 @@ try:
     import threading, pyaudio, pickle, struct
 except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
-    exit()
+    os._exit(1)
 
 
 def AudioStreaming():
@@ -43,12 +43,11 @@ def AudioStreaming():
 			stream.write(frame)
 
 		except:
-			
 			break
 
 	clientSocket.close()
 	print('Audio closed',BREAK)
-	exit()
+	os._exit(1)
 
 
 
@@ -65,7 +64,7 @@ try:
     msg = str.encode(sys.argv[2])
 except:
     print('Please add filename to arguments\n')
-    exit()
+    os._exit(1)
 
 clientSocket.sendto(msg,(clientIP,clientPort))
 
@@ -88,7 +87,7 @@ while True:
 	
 	if key == ord('q'):
 		clientSocket.close()
-		exit()
+		os._exit(1)
 		break
 
 	if cnt == frames_to_count:

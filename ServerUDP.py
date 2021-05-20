@@ -12,7 +12,7 @@ try:
     from concurrent.futures import ThreadPoolExecutor
 except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
-    exit()
+    os._exit(1)
 
 def AudioBufferCreate():
     command = "del /f temp.wav"
