@@ -10,46 +10,12 @@ try:
     import sys
     import queue
 except:
-    os.system('pip install -r requirements.txt')
-    import cv2, imutils, socket
-    import numpy as np
-    import time
-    import base64
-    import threading, wave, pyaudio,pickle,struct
-    import sys
-    import queue
+    print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
+    exit()
 
-# For details visit pyshine.com
-q = queue.Queue(maxsize=10)
-
-filename =  'tres_espias_demais.mp4'
-command = "ffmpeg -i {} -ab 160k -ac 2 -ar 44100 -vn {}".format(filename,'temp.wav')
-os.system(command)
-
-BUFF_SIZE = 65536
-server_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-server_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
-host_name = socket.gethostname()
-host_ip = sys.argv[1]#  socket.gethostbyname(host_name)
-print(host_ip)
-port = 8081
-socket_address = (host_ip,port)
-server_socket.bind(socket_address)
-print('Listening at:',socket_address)
-
-vid = cv2.VideoCapture(filename)
-FPS = vid.get(cv2.CAP_PROP_FPS)
-global TS
-TS = (0.5/FPS)
-BREAK=False
-print('FPS:',FPS,TS)
-totalNoFrames = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-durationInSeconds = float(totalNoFrames) / float(FPS)
-d=vid.get(cv2.CAP_PROP_POS_MSEC)
-print(durationInSeconds,d)
 
 def BufferCreate():
-   
+
     WIDTH=400
     while(vid.isOpened()):
         try:
@@ -61,7 +27,6 @@ def BufferCreate():
     print('Player closed')
     BREAK=True
     vid.release()
-	
 
 def VideoStreaming():
     global TS
@@ -128,10 +93,45 @@ def AudioStreaming():
                 a = pickle.dumps(data)
                 message = struct.pack("Q",len(a))+a
                 client_socket.sendall(message)
-                
 
-from concurrent.futures import ThreadPoolExecutor
-with ThreadPoolExecutor(max_workers=3) as executor:
-    executor.submit(AudioStreaming)
-    executor.submit(BufferCreate)
-    executor.submit(VideoStreaming)
+
+# For details visit pyshine.com
+q = queue.Queue(maxsize=10)
+
+BUFF_SIZE = 65536
+server_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+server_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFF_SIZE)
+host_name = socket.gethostname()
+host_ip = sys.argv[1]#  socket.gethostbyname(host_name)
+print(host_ip)
+port = 8081
+socket_address = (host_ip,port)
+server_socket.bind(socket_address)
+print('Listening at:',socket_address)
+
+while True:
+    msg, cAddress = server_socket.recvfrom(BUFF_SIZE)
+    print('GOT connection from', cAddress)
+    print(msg)
+    filename = msg.decode("utf-8")
+    print(filename)
+
+    command = "ffmpeg -i {} -ab 160k -ac 2 -ar 44100 -vn {}".format(filename,'temp.wav')
+    os.system(command)
+
+    vid = cv2.VideoCapture(filename)
+    FPS = vid.get(cv2.CAP_PROP_FPS)
+    global TS
+    TS = (0.5/FPS)
+    BREAK=False
+    print('FPS:',FPS,TS)
+    totalNoFrames = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+    durationInSeconds = float(totalNoFrames) / float(FPS)
+    d=vid.get(cv2.CAP_PROP_POS_MSEC)
+    print(durationInSeconds,d)
+
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        executor.submit(AudioStreaming)
+        executor.submit(BufferCreate)
+        executor.submit(VideoStreaming)

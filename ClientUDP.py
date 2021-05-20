@@ -8,12 +8,8 @@ try:
     import base64
     import threading, wave, pyaudio,pickle,struct
 except:
-    os.system('pip install -r requirements.txt')
-    import cv2, imutils, socket
-    import numpy as np
-    import time, os, sys
-    import base64
-    import threading, wave, pyaudio,pickle,struct
+    print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
+    exit()
 
 BUFF_SIZE = 65536
 
@@ -24,9 +20,14 @@ host_name = socket.gethostname()
 host_ip = sys.argv[1]#  socket.gethostbyname(host_name)
 print(host_ip)
 port = 8081
-message = b'Hello'
+try:
+    msg = sys.argv[2]
+    msg = str.encode(sys.argv[2])
+except:
+    print('Please add filename to arguments\n')
+    exit()
 
-client_socket.sendto(message,(host_ip,port))
+client_socket.sendto(msg,(host_ip,port))
 
 
 
