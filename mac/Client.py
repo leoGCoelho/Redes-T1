@@ -89,8 +89,8 @@ def RecvFromServer():
 	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	recvSocket.connect((clientIP,clientPort-1))
 
-	with open(sys.argv[3], 'wb') as filedata:
-		print("Recebendo",sys.argv[3],'...')
+	with open(filename, 'wb') as filedata:
+		print("Recebendo",filename,'...')
 		while 1:
 			data = recvSocket.recv(1000000)
 			if not data:
@@ -103,8 +103,8 @@ def SendToServer():
 	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	recvSocket.connect((clientIP,clientPort-1))
 
-	with open(sys.argv[3], 'rb') as filedata:                      # abre arquivo desejado
-		print("Enviando",sys.argv[3],'...')
+	with open(filename, 'rb') as filedata:                      # abre arquivo desejado
+		print("Enviando",filename,'...')
 		for data in filedata.readlines():
 			recvSocket.send(data)                             # envia linhas do arquivo para o cliente
 
@@ -125,7 +125,8 @@ hostname = socket.gethostname()
 # dados de conexao
 if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 	try:
-		msg = 'VIEW//'+ sys.argv[3]
+		filename = sys.argv[3]
+		msg = 'VIEW//'+ filename
 		msg = str.encode(msg)								# codifica endereco do arquivo
 	except:
 		print('Por favor adicione o nome do arquivo aos argumentos\n')
@@ -134,13 +135,14 @@ if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
 	try:
-		if('.mp4' in sys.argv[3]):									# se arquivo for um video
+		if('.mp4' in filename):									# se arquivo for um video
 			t1 = threading.Thread(target=AudioStreaming, args=())
 			t1.start()												# paraleliza audio para reproduzir junto aos frames
 
 			VideoStreaming()										# reproduz video
 
-		elif(('.wav' in sys.argv[3]) or ('.mp3' in sys.argv[3])):								# caso o arquivo um audio
+		elif(('.wav' in filename) or ('.mp3' in filename)):								# caso o arquivo um audio
+			print("Reproduzindo",filename,'...')
 			AudioStreaming()										# recebe os dados via TCP
 
 		else:														# caso seja outro tipo de arquivo, da erro
@@ -152,7 +154,7 @@ if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 
 elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 	try:
-		msg = 'GET//'+ sys.argv[3]
+		msg = 'GET//'+ filename
 		msg = str.encode(msg)								# codifica endereco do arquivo
 	except:
 		print('Por favor adicione o nome do arquivo aos argumentos\n')
@@ -161,12 +163,12 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
 	RecvFromServer()
-	print(sys.argv[3], 'recebido com sucesso!\n')
+	print(filename, 'recebido com sucesso!\n')
 
 
 elif(sys.argv[2] == '-u'):											# caso de download de arquivo
 	try:
-		msg = 'POST//'+ sys.argv[3]
+		msg = 'POST//'+ filename
 		msg = str.encode(msg)								# codifica endereco do arquivo
 	except:
 		print('Por favor adicione o nome do arquivo aos argumentos\n')
@@ -175,4 +177,18 @@ elif(sys.argv[2] == '-u'):											# caso de download de arquivo
 	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
 	SendToServer()
-	print(sys.argv[3], 'recebido com sucesso!\n')
+	print(filename, 'recebido com sucesso!\n')
+
+
+elif(sys.argv[2] == '-end'):											# caso de download de arquivo
+	try:
+		msg = 'SHUTDOWN//server'
+		msg = str.encode(msg)								# codifica endereco do arquivo
+	except:
+		print('Por favor adicione o nome do arquivo aos argumentos\n')
+		os._exit(1)
+
+	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
+
+	print('Servidor esta desligando...\n')
+	os._exit(1)

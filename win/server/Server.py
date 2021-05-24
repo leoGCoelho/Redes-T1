@@ -7,7 +7,7 @@ try:
     import wave, pickle, struct
     import queue
     from concurrent.futures import ThreadPoolExecutor
-	from pydub import AudioSegment
+    from pydub import AudioSegment
 except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
     os._exit(1)
@@ -30,7 +30,7 @@ def VideoBufferCreate():
             frame = imutils.resize(frame, width=WIDTH)
             videoBuffer.put(frame)
         except:
-            os._exit(1)
+            pass
     print('Connection to', cAddress, 'is closed...')
     vid.release()                                       # libera video auxiliar
 
@@ -74,9 +74,9 @@ def VideoStreaming():
 
 
 def AudioConverting():
-	command = "del /f temp.wav"
-	os.system(command)
-    srcFile = 'temp.wav'
+    command = "del /f temp.wav"
+    os.system(command)
+    srcFile = "temp.wav"
     sound = AudioSegment.from_mp3(filename)
     sound.export(srcFile, format="wav")
 
@@ -143,16 +143,17 @@ BUFFSIZE = 65536
 # dados de conexao
 serverIP = sys.argv[1]
 serverPort = 8081
-serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,BUFFSIZE)
-hostname = socket.gethostname()
-
-# realiza conexao entre cliente e o servidor, esperando endereco do arquivo
-sAddress = (serverIP, serverPort)
-serverSocket.bind(sAddress)
-print('The server started at', sAddress)
 
 while True:
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF,BUFFSIZE)
+    hostname = socket.gethostname()
+
+    # realiza conexao entre cliente e o servidor, esperando endereco do arquivo
+    sAddress = (serverIP, serverPort)
+    serverSocket.bind(sAddress)
+    print('The server started at', sAddress)
+
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)                     # recebe o endereco do arquivo desejado do cliente
     print(msg)
     filen = msg.decode("utf-8")                                         # decodifica endereco
@@ -208,10 +209,11 @@ while True:
     elif(filen[0] == 'GET'):                                                # caso de download de arquivo
         SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
         print(filename, 'enviado com sucesso!\n')
-        os._exit(1)
 
 
     elif(filen[0] == 'POST'):                                                # caso de upload de arquivo
         RecvFromClient()
         print(filename, 'recebido com sucesso!\n')
-        os._exit(1)
+
+    elif(filen[0] == 'SHUTDOWN'):                                                # caso de upload de arquivo
+        print('Server encerrado por cliente!\n')
