@@ -58,6 +58,7 @@ def AudioStreaming():
 
 	while True:													# reproduz dados recebidos do servidor
 		try:
+			# recebe pacote com audio e reproduz em 2o plano
 			while len(data) < dataSize:
 				package = clientSocket.recv(4*1024)
 				if not package: 
@@ -87,26 +88,26 @@ def AudioStreaming():
 # Download de arquivos via TCP
 def RecvFromServer():
 	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	recvSocket.connect((clientIP,clientPort-1))
+	recvSocket.connect((clientIP,clientPort-1))						# abre conexao com o servidor
 
 	with open(sys.argv[3], 'wb') as filedata:
 		print("Recebendo",sys.argv[3],'...')
 		while 1:
-			data = recvSocket.recv(1000000)
+			data = recvSocket.recv(1000000)							# recebe do servidor os dados do arquivo
 			if not data:
 				break
-			filedata.write(data)
+			filedata.write(data)									# armazena os dados em um arquivo novo
 
 
 # Upload de arquivos via TCP
 def SendToServer():
 	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	recvSocket.connect((clientIP,clientPort-1))
+	recvSocket.connect((clientIP,clientPort-1))						# abre conexao com o servidor
 
-	with open(sys.argv[3], 'rb') as filedata:                      # abre arquivo desejado
+	with open(sys.argv[3], 'rb') as filedata:                      	# abre arquivo desejado
 		print("Enviando",sys.argv[3],'...')
 		for data in filedata.readlines():
-			recvSocket.send(data)                             # envia linhas do arquivo para o cliente
+			recvSocket.send(data)                             		# envia linhas do arquivo para o cliente
 
 
 

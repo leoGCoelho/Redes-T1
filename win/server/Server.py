@@ -80,6 +80,7 @@ def VideoStreaming():
     cv2.destroyAllWindows()
 
 
+# Convertendo arquivos MP3 para um temporario WAV
 def AudioConverting():
     command = "del /f temp.wav"
     os.system(command)
@@ -94,7 +95,7 @@ def AudioConverting():
 def AudioStreaming():
     global audiofile
     audioSocket = socket.socket()
-    audioSocket.bind((serverIP, (serverPort-1)))
+    audioSocket.bind((serverIP, (serverPort-1)))                # cria um socket para transmissao do audio com cliente
 
     audioSocket.listen(5)
     CHUNK = 1024
@@ -108,7 +109,7 @@ def AudioStreaming():
                 data = wf.readframes(CHUNK)
                 a = pickle.dumps(data)
                 audioData = struct.pack("Q", len(a)) + a
-                clientSocket.sendall(audioData)                 # envia pacote com todo audio para o cliente
+                clientSocket.sendall(audioData)                 # envia pacote com audio para o cliente
 
 
 # Download de arquivos via TCP
@@ -134,10 +135,10 @@ def RecvFromClient():
     with open(filename, 'wb') as filedata:
         print("Recebendo",filename,'...')
         while 1:
-            data = clientSocket.recv(1000000)
+            data = clientSocket.recv(1000000)                   # recebe pacotes contendo dados do arquivo
             if not data:
                 break
-            filedata.write(data) 
+            filedata.write(data)                                # armazena dados recebidos em um arquivo
 
 
 
@@ -158,7 +159,7 @@ while True:
 
     # realiza conexao entre cliente e o servidor, esperando endereco do arquivo
     sAddress = (serverIP, serverPort)
-    serverSocket.bind(sAddress)
+    serverSocket.bind(sAddress)                                         # abre conexao com o cliente
     print('The server started at', sAddress)
 
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)                     # recebe o endereco do arquivo desejado do cliente
@@ -198,10 +199,12 @@ while True:
 
             elif('.wav' in filename):                                       # caso o arquivo seja um audio
                 audiofile = filename
+                print("Reproduzindo",sys.argv[3],'...')
                 AudioStreaming()                                            # envia o arquivo via TCP
 
             elif('.mp3' in filename):                                       # caso o arquivo seja um audio
                 audiofile = AudioConverting()
+                print("Reproduzindo",sys.argv[3],'...')
                 AudioStreaming()                                            # envia o arquivo via TCP
 
             else:                                                           # caso seja outro tipo de arquivo, da erro
