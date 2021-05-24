@@ -30,7 +30,8 @@ def VideoBufferCreate():
             frame = imutils.resize(frame, width=WIDTH)
             videoBuffer.put(frame)
         except:
-            pass
+            os._exit(1)
+    cv2.destroyAllWindows()
     print('Connection to', cAddress, 'is closed...')
     vid.release()                                       # libera video auxiliar
 
@@ -43,34 +44,40 @@ def VideoStreaming():
     cv2.namedWindow(('Transmitindo ' + filename + '...'))
     cv2.moveWindow(('Transmitindo ' + filename + '...'), 10, 30) 
 
-    while True:                                                                             # enquanto tiver frames, envia para o cliente
-        frame = videoBuffer.get()                                                               # pega um frame do video
-        encoded,buffer = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])           # formata em jpeg para otimizar envio
-        frameData = base64.b64encode(buffer)
-        serverSocket.sendto(frameData, cAddress)                                                # manda frame para cliente
+    while True: 
+        try:                                                                            # enquanto tiver frames, envia para o cliente
+            frame = videoBuffer.get()                                                               # pega um frame do video
+            encoded,buffer = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])           # formata em jpeg para otimizar envio
+            frameData = base64.b64encode(buffer)
+            serverSocket.sendto(frameData, cAddress)                                                # manda frame para cliente
 
-        #frame = cv2.putText(frame, 'FPS: '+str(round(fps,1)), (10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)  # legenda com os frames da reproducao
+            #frame = cv2.putText(frame, 'FPS: '+str(round(fps,1)), (10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)  # legenda com os frames da reproducao
 
-        # sincroniza velocidade de frames do video com a transmissao
-        if cnt == ftc:
-            try:
-                fps = (ftc/(time.time()-st))
-                st=time.time()
-                cnt=0
-                if fps>vidFPS:
-                    vidTS+=0.001
-                elif fps<vidFPS:
-                    vidTS-=0.001
-                else:
+            # sincroniza velocidade de frames do video com a transmissao
+            if cnt == ftc:
+                try:
+                    fps = (ftc/(time.time()-st))
+                    st=time.time()
+                    cnt=0
+                    if fps>vidFPS:
+                        vidTS+=0.001
+                    elif fps<vidFPS:
+                        vidTS-=0.001
+                    else:
+                        pass
+                except:
                     pass
-            except:
-                pass
-        cnt+=1
+            cnt+=1
+            
+            cv2.imshow(('Transmitindo ' + filename + '...'), frame)                                 # mostra frame na tela
+            key = cv2.waitKey(int(1000*vidTS)) & 0xFF
+            if key == ord('q'):	                                                                    # caso 'q' seja apertado, fecha video
+                os._exit(1)	
         
-        cv2.imshow(('Transmitindo ' + filename + '...'), frame)                                 # mostra frame na tela
-        key = cv2.waitKey(int(1000*vidTS)) & 0xFF
-        if key == ord('q'):	                                                                    # caso 'q' seja apertado, fecha video
-            os._exit(1)	
+        except:
+            break
+
+    cv2.destroyAllWindows()
 
 
 def AudioConverting():
@@ -217,3 +224,4 @@ while True:
 
     elif(filen[0] == 'SHUTDOWN'):                                                # caso de upload de arquivo
         print('Server encerrado por cliente!\n')
+        os._exit(1)
