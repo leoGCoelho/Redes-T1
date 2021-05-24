@@ -129,9 +129,9 @@ while True:
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)                     # recebe o endereco do arquivo desejado do cliente
     print(msg)
     filen = msg.decode("utf-8")                                         # decodifica endereco
-    print(filen)
     print('Conexao com', cAddress, 'estabelecida...\n')
-    filen = filen.split('//')
+    filen = str(filen).split('//')
+    print(filen)
     filename = str(filen[1])
 
     if(filen[0] == 'VIEW'):                                                 # caso de streaming de arquivo

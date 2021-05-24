@@ -19,6 +19,7 @@ def AudioBufferCreate():
     command = "ffmpeg -i " + filename + " -ab 160k -ac 2 -ar 44100 -vn temp.wav"
     os.system(command)
 
+
 # Criando buffer com frames do video
 def VideoBufferCreate():
     WIDTH=400                                           # tamanho optimizado para melhor transmissao
@@ -31,6 +32,7 @@ def VideoBufferCreate():
             os._exit(1)
     print('Connection to', cAddress, 'is closed...')
     vid.release()                                       # libera video auxiliar
+
 
 # Transporte dos frames do video por UDP
 def VideoStreaming():
@@ -55,9 +57,9 @@ def VideoStreaming():
                 st=time.time()
                 cnt=0
                 if fps>vidFPS:
-                    vidTS+=0.01
+                    vidTS+=0.001
                 elif fps<vidFPS:
-                    vidTS-=0.01
+                    vidTS-=0.001
                 else:
                     pass
             except:
@@ -69,6 +71,7 @@ def VideoStreaming():
         if key == ord('q'):	                                                                    # caso 'q' seja apertado, fecha video
             os._exit(1)	
 
+
 # Transporte do audio do video por TCP
 def AudioStreaming():
     global audiofile
@@ -79,7 +82,7 @@ def AudioStreaming():
     CHUNK = 1024
     wf = wave.open(audiofile, 'rb')                             # estrutura para reproducao do video
 
-    clientSocket,addr = audioSocket.accept()
+    clientSocket,addr = audioSocket.accept()                    # verifica se a conexao foi estabelecida
 
     while True:
         if clientSocket:
@@ -90,10 +93,24 @@ def AudioStreaming():
                 clientSocket.sendall(audioData)                 # envia pacote com todo audio para o cliente
 
 
+# Download de arquivos via TCP
+def SendToClient():
+    stcSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    stcSocket.bind((serverIP, serverPort))                      # socket para envio dos dados
+    stcSocket.listen(1)
+    clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
+
+    with open(filename, 'rb') as filedata:                      # abre arquivo desejado
+        print("Enviando",filename,'...')
+        for data in filedata.readlines():
+            clientSocket.send(data)                             # envia linhas do arquivo para o cliente
+
+
+
+
 # Main
 #variaveis de buffer
 global audiofile
-videoBuffer = queue.Queue(maxsize=10)
 BUFFSIZE = 65536
 
 # dados de conexao
@@ -113,39 +130,52 @@ while True:
     print(msg)
     filen = msg.decode("utf-8")                                         # decodifica endereco
     print('Conexao com', cAddress, 'estabelecida...\n')
-    filename = str(filen)
-    
-    if(os.path.isfile(filename)):
-        if('.mp4' in filename):                                         # caso o arquivo seja um video
-            audiofile = "temp.wav"
-            print(filename)
+    filen = str(filen).split('//')
+    print(filen)
+    filename = str(filen[1])
 
-            AudioBufferCreate()                                         # converte faixa de audio em um temporario WAV
+    if(filen[0] == 'VIEW'):                                                 # caso de streaming de arquivo
 
-            # extrai os dados de fps e velocidade e tempo do video 
-            vid = cv2.VideoCapture(filename)
-            vidFPS = vid.get(cv2.CAP_PROP_FPS)
-            global vidTS
-            vidTS = (0.5/vidFPS)
-            vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-            duration = float(vidTNF) / float(vidFPS)
-            d = vid.get(cv2.CAP_PROP_POS_MSEC)
-            print(duration, d)
-            
-            # paraleliza UDP com TCP (frames com audio)
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                executor.submit(AudioStreaming)
-                executor.submit(VideoBufferCreate)
-                executor.submit(VideoStreaming)
+        if(os.path.isfile(filename)):
+            if('.mp4' in filename):                                         # caso o arquivo seja um video
+                videoBuffer = queue.Queue(maxsize=10)
 
-        elif('.wav' in filename):                                       # caso o arquivo seja um audio
-            audiofile = filename
-            AudioStreaming()                                            # envia o arquivo via TCP
+                audiofile = "temp.wav"
+                print(filename)
 
-        else:                                                           # caso seja outro tipo de arquivo, da erro
-            print('Formato invalido!')
+                AudioBufferCreate()                                         # converte faixa de audio em um temporario WAV
+
+                # extrai os dados de fps e velocidade e tempo do video 
+                vid = cv2.VideoCapture(filename)
+                vidFPS = vid.get(cv2.CAP_PROP_FPS)
+                global vidTS
+                vidTS = (0.5/vidFPS)
+                vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+                duration = float(vidTNF) / float(vidFPS)
+                d = vid.get(cv2.CAP_PROP_POS_MSEC)
+                print(duration, d)
+                
+                # paraleliza UDP com TCP (frames com audio)
+                with ThreadPoolExecutor(max_workers=3) as executor:
+                    executor.submit(AudioStreaming)
+                    executor.submit(VideoBufferCreate)
+                    executor.submit(VideoStreaming)
+
+            elif('.wav' in filename):                                       # caso o arquivo seja um audio
+                audiofile = filename
+                AudioStreaming()                                            # envia o arquivo via TCP
+
+            else:                                                           # caso seja outro tipo de arquivo, da erro
+                print('Formato invalido!')
+                os._exit(1)
+
+        else:                                                               # caso o arquivo nao esteja no servidor, da erro
+            print("Arquivo " + filename + " não encontrado!")
             os._exit(1)
 
-    else:                                                               # caso o arquivo nao esteja no servidor, da erro
-        print("Arquivo " + filename + " não encontrado!")
+
+    elif(filen[0] == 'GET'):                                                # caso de download de arquivo
+        print(filen[0])
+        SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
+        print(filename, 'enviado com sucesso!\n')
         os._exit(1)

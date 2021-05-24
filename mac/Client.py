@@ -91,12 +91,12 @@ BREAK = False
 
 clientIP = sys.argv[1]
 clientPort = 8081
-clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
-hostname = socket.gethostname()
-
 # dados de conexao
 if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
+	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+	clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
+	hostname = socket.gethostname()
+
 	try:
 		msg = 'VIEW//'+ sys.argv[3]
 		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo
@@ -124,6 +124,9 @@ if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 		os._exit(1)
 
 elif(sys.argv[2] == '-d'):											# caso de download de arquivo
+	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	clientSocket.connect((clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
+
 	try:
 		msg = 'GET//'+ sys.argv[3]
 		msg = str.encode(msg)								# codifica endereco do arquivo
@@ -131,7 +134,7 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 		print('Por favor adicione o nome do arquivo aos argumentos\n')
 		os._exit(1)
 
-	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
+	clientSocket.send(msg)
 
 	with open(sys.argv[3], 'wb') as filedata:
 		print("Recebendo",sys.argv[3],'...')
