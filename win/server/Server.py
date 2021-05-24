@@ -95,9 +95,9 @@ def AudioStreaming():
 
 # Download de arquivos via TCP
 def SendToClient():
-    stcSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    stcSocket = socket.socket()
     stcSocket.bind((serverIP, serverPort))                      # socket para envio dos dados
-    stcSocket.listen(1)
+    stcSocket.listen(5)
     clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
 
     with open(filename, 'rb') as filedata:                      # abre arquivo desejado
