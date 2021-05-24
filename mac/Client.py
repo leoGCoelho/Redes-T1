@@ -90,33 +90,35 @@ BUFFSIZE = 65536
 BREAK = False
 
 # dados de conexao
-clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
-hostname = socket.gethostname()
-clientIP = sys.argv[1]
-clientPort = 8081
+if(sys.argv[2] == '-v'):
+	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+	clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
+	hostname = socket.gethostname()
+	clientIP = sys.argv[1]
+	clientPort = 8081
 
-try:
-    msg = str.encode(sys.argv[2])								# codifica endereco do arquivo
-except:
-    print('Please add filename to arguments\n')
-    os._exit(1)
+	try:
+		msg = 'VIEW//'+ sys.argv[3]
+		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo
+	except:
+		print('Please add filename to arguments\n')
+		os._exit(1)
 
-clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
+	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
-try:
-	if('.mp4' in sys.argv[2]):									# se arquivo for um video
-		t1 = threading.Thread(target=AudioStreaming, args=())
-		t1.start()												# paraleliza audio para reproduzir junto aos frames
+	try:
+		if('.mp4' in sys.argv[3]):									# se arquivo for um video
+			t1 = threading.Thread(target=AudioStreaming, args=())
+			t1.start()												# paraleliza audio para reproduzir junto aos frames
 
-		VideoStreaming()										# reproduz video
+			VideoStreaming()										# reproduz video
 
-	elif('.wav' in sys.argv[2]):								# caso o arquivo um audio
-		AudioStreaming()										# recebe os dados via TCP
+		elif('.wav' in sys.argv[3]):								# caso o arquivo um audio
+			AudioStreaming()										# recebe os dados via TCP
 
-	else:														# caso seja outro tipo de arquivo, da erro
-		print('Formato invalido!')							
+		else:														# caso seja outro tipo de arquivo, da erro
+			print('Formato invalido!')							
 
-except:
-	print('Erro durante a conexão. Por favor tente novamente!\n')	# caso o arquivo nao esteja no servidor, da erro
-	os._exit(1)
+	except:
+		print('Erro durante a conexão. Por favor tente novamente!\n')	# caso o arquivo nao esteja no servidor, da erro
+		os._exit(1)

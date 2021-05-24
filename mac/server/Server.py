@@ -113,39 +113,41 @@ while True:
     print(msg)
     filen = msg.decode("utf-8")                                         # decodifica endereco
     print('Conexao com', cAddress, 'estabelecida...\n')
-    filename = str(filen)
-    
-    if(os.path.isfile(filename)):
-        if('.mp4' in filename):                                         # caso o arquivo seja um video
-            audiofile = "temp.wav"
-            print(filename)
+    filen = filen.split('//')
+    filename = str(filen[1])
 
-            AudioBufferCreate()                                         # converte faixa de audio em um temporario WAV
+    if(filen[0] == 'VIEW'):
+        if(os.path.isfile(filename)):
+            if('.mp4' in filename):                                         # caso o arquivo seja um video
+                audiofile = "temp.wav"
+                print(filename)
 
-            # extrai os dados de fps e velocidade e tempo do video 
-            vid = cv2.VideoCapture(filename)
-            vidFPS = vid.get(cv2.CAP_PROP_FPS)
-            global vidTS
-            vidTS = (0.5/vidFPS)
-            vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-            duration = float(vidTNF) / float(vidFPS)
-            d = vid.get(cv2.CAP_PROP_POS_MSEC)
-            print(duration, d)
-            
-            # paraleliza UDP com TCP (frames com audio)
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                executor.submit(AudioStreaming)
-                executor.submit(VideoBufferCreate)
-                executor.submit(VideoStreaming)
+                AudioBufferCreate()                                         # converte faixa de audio em um temporario WAV
 
-        elif('.wav' in filename):                                       # caso o arquivo seja um audio
-            audiofile = filename
-            AudioStreaming()                                            # envia o arquivo via TCP
+                # extrai os dados de fps e velocidade e tempo do video 
+                vid = cv2.VideoCapture(filename)
+                vidFPS = vid.get(cv2.CAP_PROP_FPS)
+                global vidTS
+                vidTS = (0.5/vidFPS)
+                vidTNF = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+                duration = float(vidTNF) / float(vidFPS)
+                d = vid.get(cv2.CAP_PROP_POS_MSEC)
+                print(duration, d)
+                
+                # paraleliza UDP com TCP (frames com audio)
+                with ThreadPoolExecutor(max_workers=3) as executor:
+                    executor.submit(AudioStreaming)
+                    executor.submit(VideoBufferCreate)
+                    executor.submit(VideoStreaming)
 
-        else:                                                           # caso seja outro tipo de arquivo, da erro
-            print('Formato invalido!')
+            elif('.wav' in filename):                                       # caso o arquivo seja um audio
+                audiofile = filename
+                AudioStreaming()                                            # envia o arquivo via TCP
+
+            else:                                                           # caso seja outro tipo de arquivo, da erro
+                print('Formato invalido!')
+                os._exit(1)
+
+        else:                                                               # caso o arquivo nao esteja no servidor, da erro
+            print("Arquivo " + filename + " não encontrado!")
             os._exit(1)
-
-    else:                                                               # caso o arquivo nao esteja no servidor, da erro
-        print("Arquivo " + filename + " não encontrado!")
-        os._exit(1)
