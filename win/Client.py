@@ -192,3 +192,8 @@ elif(sys.argv[2] == '-end'):											# caso de download de arquivo
 
 	print('Servidor esta desligando...\n')
 	os._exit(1)
+
+
+else:
+	print('Operacao invalida! Use outra\n')
+	os._exit(1)

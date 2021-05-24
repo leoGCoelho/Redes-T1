@@ -228,3 +228,7 @@ while True:
     elif(filen[0] == 'SHUTDOWN'):                                                # caso de upload de arquivo
         print('Server encerrado por cliente!\n')
         os._exit(1)
+
+    else:
+	    print('Operacao invalida! Use outra\n')
+	    os._exit(1)
