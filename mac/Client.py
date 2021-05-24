@@ -141,16 +141,12 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 
 	clientSocket.send(msg)
 
-	try:
-		with open(sys.argv[3], 'wb') as filedata:
-			print("Recebendo",sys.argv[3],'...')
-			while 1:
-				data = clientSocket.recv(1000000)
-				if not data:
-					break
-				filedata.write(data)
+	with open(sys.argv[3], 'wb') as filedata:
+		print("Recebendo",sys.argv[3],'...')
+		while 1:
+			data = clientSocket.recv(1000000)
+			if not data:
+				break
+			filedata.write(data)
 
-		print(sys.argv[3], 'recebido com sucesso!\n')
-
-	except:
-		print('Algum erro ocorreu durante a transferencia! Por favor tente novamente!\n')
+	print(sys.argv[3], 'recebido com sucesso!\n')

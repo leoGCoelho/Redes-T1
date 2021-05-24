@@ -1,0 +1,1 @@
+A soma desse vetor não é muito custosa de se fazer de forma sequencial, então quando paralelizamos, ele acaba se tornando mais lento. Para compravar meu ponto, eu executei o mesmo código, só que somando 500000 elementos, e o código executou mais rápido paralelamente do que de forma sequencial, e executou mais rápido com 4 threads do que com 2 threads
