@@ -105,8 +105,8 @@ def SendToServer():
 
 	with open(sys.argv[3], 'rb') as filedata:                      # abre arquivo desejado
 		print("Enviando",sys.argv[3],'...')
-        for data in filedata.readlines():
-            recvSocket.send(data)                             # envia linhas do arquivo para o cliente
+		for data in filedata.readlines():
+			recvSocket.send(data)                             # envia linhas do arquivo para o cliente
 
 
 
