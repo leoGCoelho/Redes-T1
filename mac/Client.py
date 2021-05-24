@@ -91,13 +91,12 @@ BREAK = False
 
 clientIP = sys.argv[1]
 clientPort = 8081
+clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
+hostname = socket.gethostname()
 
 # dados de conexao
 if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
-	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-	clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
-	hostname = socket.gethostname()
-
 	try:
 		msg = 'VIEW//'+ sys.argv[3]
 		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo
@@ -125,13 +124,6 @@ if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 		os._exit(1)
 
 elif(sys.argv[2] == '-d'):											# caso de download de arquivo
-	if(os.path.isfile(sys.argv[3])):								# caso o arquivo exista na pasta
-		print('Esse arquivo ja existe! Por favor selecione outro!')
-		os._exit(1)
-
-	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	clientSocket.connect((clientIP, clientPort))
-
 	try:
 		msg = 'GET//'+ sys.argv[3]
 		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo

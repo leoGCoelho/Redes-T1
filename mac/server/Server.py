@@ -174,11 +174,6 @@ while True:
 
 
     elif(filen[0] == 'GET'):                                                # caso de download de arquivo
-        print('entrou aqui')
-        if(os.path.isfile(filename)):
-            SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
-            print(filename, 'enviado com sucesso!\n')
-
-        else:                                                               # caso o arquivo nao esteja no servidor, da erro
-            print("Arquivo " + filename + " não encontrado!")
-            os._exit(1)
+        SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
+        print(filename, 'enviado com sucesso!\n')
+        os._exit(1)
