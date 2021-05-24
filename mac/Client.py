@@ -143,6 +143,7 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 
 	try:
 		with open(sys.argv[3], 'wb') as filedata:
+			print("Recebendo",sys.argv[3],'...')
 			while 1:
 				data = clientSocket.recv(1000000)
 				if not data:

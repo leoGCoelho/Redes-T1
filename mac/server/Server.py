@@ -97,6 +97,7 @@ def SendToClient():
     clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
 
     with open(filename, 'rb') as filedata:                      # abre arquivo desejado
+        print("Enviando",filename,'...')
         for data in filedata.readlines():
             clientSocket.send(data)                             # envia linhas do arquivo para o cliente
 
