@@ -89,19 +89,20 @@ def AudioStreaming():
 BUFFSIZE = 65536
 BREAK = False
 
+clientIP = sys.argv[1]
+clientPort = 8081
+
 # dados de conexao
-if(sys.argv[2] == '-v'):
+if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 	clientSocket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,BUFFSIZE)
 	hostname = socket.gethostname()
-	clientIP = sys.argv[1]
-	clientPort = 8081
 
 	try:
 		msg = 'VIEW//'+ sys.argv[3]
 		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo
 	except:
-		print('Please add filename to arguments\n')
+		print('Por favor adicione o nome do arquivo aos argumentos\n')
 		os._exit(1)
 
 	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
@@ -122,3 +123,33 @@ if(sys.argv[2] == '-v'):
 	except:
 		print('Erro durante a conexão. Por favor tente novamente!\n')	# caso o arquivo nao esteja no servidor, da erro
 		os._exit(1)
+
+elif(sys.argv[2] == '-d'):											# caso de download de arquivo
+	if(os.path.isfile(sys.argv[3])):								# caso o arquivo exista na pasta
+		print('Esse arquivo ja existe! Por favor selecione outro!')
+		os._exit(1)
+
+	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	clientSocket.connect(clientIP, clientPort)
+
+	try:
+		msg = 'GET//'+ sys.argv[3]
+		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo
+	except:
+		print('Por favor adicione o nome do arquivo aos argumentos\n')
+		os._exit(1)
+
+	clientSocket.send(msg)
+
+	try:
+		with open(sys.argv[3], 'wb') as filedata:
+			while 1:
+				data = clientSocket.recv(1000000)
+				if not data:
+					break
+				filedata.write(data)
+
+		print(sys.argv[3], 'recebido com sucesso!\n')
+
+	except:
+		print('Algum erro ocorreu durante a transferencia! Por favor tente novamente!\n')

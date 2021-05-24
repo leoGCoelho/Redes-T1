@@ -89,6 +89,19 @@ def AudioStreaming():
                 audioData = struct.pack("Q", len(a)) + a
                 clientSocket.sendall(audioData)                 # envia pacote com todo audio para o cliente
 
+# Download de arquivos via TCP
+def SendToClient():
+    stcSocket = socket.socket()
+    stcSocket.bind((serverIP, serverPort))                      # socket para envio dos dados
+    stcSocket.listen(1)
+    clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
+
+    with open(filename, 'rb') as filedata:                      # abre arquivo desejado
+        for data in filedata.readlines():
+            clientSocket.send(data)                             # envia linhas do arquivo para o cliente
+
+
+
 
 # Main
 #variaveis de buffer
@@ -116,7 +129,8 @@ while True:
     filen = filen.split('//')
     filename = str(filen[1])
 
-    if(filen[0] == 'VIEW'):
+    if(filen[0] == 'VIEW'):                                                 # caso de streaming de arquivo
+
         if(os.path.isfile(filename)):
             if('.mp4' in filename):                                         # caso o arquivo seja um video
                 audiofile = "temp.wav"
@@ -147,6 +161,16 @@ while True:
             else:                                                           # caso seja outro tipo de arquivo, da erro
                 print('Formato invalido!')
                 os._exit(1)
+
+        else:                                                               # caso o arquivo nao esteja no servidor, da erro
+            print("Arquivo " + filename + " não encontrado!")
+            os._exit(1)
+
+
+    elif(filen[0] == 'GET'):                                                # caso de download de arquivo
+        if(os.path.isfile(filename)):
+            SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
+            print(filename, 'enviado com sucesso!\n')
 
         else:                                                               # caso o arquivo nao esteja no servidor, da erro
             print("Arquivo " + filename + " não encontrado!")
