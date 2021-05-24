@@ -130,7 +130,7 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 		os._exit(1)
 
 	clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	clientSocket.connect(clientIP, clientPort)
+	clientSocket.connect((clientIP, clientPort))
 
 	try:
 		msg = 'GET//'+ sys.argv[3]
