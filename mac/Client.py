@@ -126,7 +126,7 @@ if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 	try:
 		msg = 'GET//'+ sys.argv[3]
-		msg = str.encode(sys.argv[3])								# codifica endereco do arquivo
+		msg = str.encode(msg)								# codifica endereco do arquivo
 	except:
 		print('Por favor adicione o nome do arquivo aos argumentos\n')
 		os._exit(1)

@@ -129,6 +129,7 @@ while True:
     msg, cAddress = serverSocket.recvfrom(BUFFSIZE)                     # recebe o endereco do arquivo desejado do cliente
     print(msg)
     filen = msg.decode("utf-8")                                         # decodifica endereco
+    print(filen)
     print('Conexao com', cAddress, 'estabelecida...\n')
     filen = filen.split('//')
     filename = str(filen[1])
@@ -174,6 +175,7 @@ while True:
 
 
     elif(filen[0] == 'GET'):                                                # caso de download de arquivo
+        print(filen[0])
         SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
         print(filename, 'enviado com sucesso!\n')
         os._exit(1)
