@@ -84,6 +84,20 @@ def AudioStreaming():
 	os._exit(1)
 
 
+def RecvFromServer():
+	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	recvSocket.connect((clientIP,clientPort-1))
+
+	with open(sys.argv[3], 'wb') as filedata:
+		print("Recebendo",sys.argv[3],'...')
+		while 1:
+			data = recvSocket.recv(1000000)
+			if not data:
+				break
+			filedata.write(data)
+
+
+
 # Main
 # variaveis globais
 BUFFSIZE = 65536
@@ -133,12 +147,5 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 
 	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
-	with open(sys.argv[3], 'wb') as filedata:
-		print("Recebendo",sys.argv[3],'...')
-		while 1:
-			data = clientSocket.recv(1000000)
-			if not data:
-				break
-			filedata.write(data)
-
+	RecvFromServer()
 	print(sys.argv[3], 'recebido com sucesso!\n')

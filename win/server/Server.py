@@ -95,9 +95,9 @@ def AudioStreaming():
 
 # Download de arquivos via TCP
 def SendToClient():
-    stcSocket = socket.socket()
-    stcSocket.bind((serverIP, serverPort))                      # socket para envio dos dados
-    stcSocket.listen(5)
+    stcSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    stcSocket.bind((serverIP, serverPort-1))                      # socket para envio dos dados
+    stcSocket.listen(1)
     clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
 
     with open(filename, 'rb') as filedata:                      # abre arquivo desejado
@@ -130,9 +130,9 @@ while True:
     print(msg)
     filen = msg.decode("utf-8")                                         # decodifica endereco
     print('Conexao com', cAddress, 'estabelecida...\n')
-    filen = str(filen).split('//')
-    print(filen)
-    filename = str(filen[1])
+    filen = filen.split('//')
+    print(filen[0])
+    filename = filen[1]
 
     if(filen[0] == 'VIEW'):                                                 # caso de streaming de arquivo
 
@@ -175,7 +175,6 @@ while True:
 
 
     elif(filen[0] == 'GET'):                                                # caso de download de arquivo
-        print(filen[0])
         SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
         print(filename, 'enviado com sucesso!\n')
         os._exit(1)
