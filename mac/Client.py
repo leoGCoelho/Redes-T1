@@ -84,6 +84,7 @@ def AudioStreaming():
 	os._exit(1)
 
 
+# Download de arquivos via TCP
 def RecvFromServer():
 	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 	recvSocket.connect((clientIP,clientPort-1))
@@ -95,6 +96,18 @@ def RecvFromServer():
 			if not data:
 				break
 			filedata.write(data)
+
+
+# Upload de arquivos via TCP
+def SendToServer():
+	recvSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	recvSocket.connect((clientIP,clientPort-1))
+
+	with open(sys.argv[3], 'rb') as filedata:                      # abre arquivo desejado
+		print("Enviando",sys.argv[3],'...')
+        for data in filedata.readlines():
+            recvSocket.send(data)                             # envia linhas do arquivo para o cliente
+
 
 
 
@@ -148,4 +161,18 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
 	RecvFromServer()
+	print(sys.argv[3], 'recebido com sucesso!\n')
+
+
+elif(sys.argv[2] == '-u'):											# caso de download de arquivo
+	try:
+		msg = 'POST//'+ sys.argv[3]
+		msg = str.encode(msg)								# codifica endereco do arquivo
+	except:
+		print('Por favor adicione o nome do arquivo aos argumentos\n')
+		os._exit(1)
+
+	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
+
+	SendToServer()
 	print(sys.argv[3], 'recebido com sucesso!\n')

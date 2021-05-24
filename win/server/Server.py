@@ -106,6 +106,22 @@ def SendToClient():
             clientSocket.send(data)                             # envia linhas do arquivo para o cliente
 
 
+# Upload de arquivos via TCP
+def RecvFromClient():
+    stcSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    stcSocket.bind((serverIP, serverPort-1))                      # socket para envio dos dados
+    stcSocket.listen(1)
+    clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
+
+    with open(filename, 'wb') as filedata:
+        print("Recebendo",filename,'...')
+        while 1:
+            data = clientSocket.recv(1000000)
+            if not data:
+                break
+            filedata.write(data) 
+
+
 
 
 # Main
@@ -177,4 +193,10 @@ while True:
     elif(filen[0] == 'GET'):                                                # caso de download de arquivo
         SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
         print(filename, 'enviado com sucesso!\n')
+        os._exit(1)
+
+
+    elif(filen[0] == 'POST'):                                                # caso de upload de arquivo
+        RecvFromClient()
+        print(filename, 'recebido com sucesso!\n')
         os._exit(1)
