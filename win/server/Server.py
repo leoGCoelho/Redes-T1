@@ -7,6 +7,7 @@ try:
     import wave, pickle, struct
     import queue
     from concurrent.futures import ThreadPoolExecutor
+	from pydub import AudioSegment
 except:
     print("Alguns pacotes precisam ser instalados!\n Favor checar novamente os pacotes instalados!\n")
     os._exit(1)
@@ -70,6 +71,16 @@ def VideoStreaming():
         key = cv2.waitKey(int(1000*vidTS)) & 0xFF
         if key == ord('q'):	                                                                    # caso 'q' seja apertado, fecha video
             os._exit(1)	
+
+
+def AudioConverting():
+	command = "del /f temp.wav"
+	os.system(command)
+    srcFile = 'temp.wav'
+    sound = AudioSegment.from_mp3(filename)
+    sound.export(srcFile, format="wav")
+
+    return srcFile
 
 
 # Transporte do audio do video por TCP
@@ -179,6 +190,10 @@ while True:
 
             elif('.wav' in filename):                                       # caso o arquivo seja um audio
                 audiofile = filename
+                AudioStreaming()                                            # envia o arquivo via TCP
+
+            elif('.mp3' in filename):                                       # caso o arquivo seja um audio
+                audiofile = AudioConverting()
                 AudioStreaming()                                            # envia o arquivo via TCP
 
             else:                                                           # caso seja outro tipo de arquivo, da erro

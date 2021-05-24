@@ -140,7 +140,7 @@ if(sys.argv[2] == '-v'):											# caso de streaming de arquivo
 
 			VideoStreaming()										# reproduz video
 
-		elif('.wav' in sys.argv[3]):								# caso o arquivo um audio
+		elif(('.wav' in sys.argv[3]) or ('.mp3' in sys.argv[3])):								# caso o arquivo um audio
 			AudioStreaming()										# recebe os dados via TCP
 
 		else:														# caso seja outro tipo de arquivo, da erro
