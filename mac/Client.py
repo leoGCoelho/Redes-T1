@@ -139,7 +139,7 @@ elif(sys.argv[2] == '-d'):											# caso de download de arquivo
 		print('Por favor adicione o nome do arquivo aos argumentos\n')
 		os._exit(1)
 
-	clientSocket.send(msg)
+	clientSocket.sendto(msg,(clientIP,clientPort))					# realiza conexao entre cliente e o servidor, enviando endereco do arquivo
 
 	with open(sys.argv[3], 'wb') as filedata:
 		print("Recebendo",sys.argv[3],'...')

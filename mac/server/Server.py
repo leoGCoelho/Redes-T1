@@ -19,6 +19,7 @@ def AudioBufferCreate():
     command = "ffmpeg -i " + filename + " -ab 160k -ac 2 -ar 44100 -vn temp.wav"
     os.system(command)
 
+
 # Criando buffer com frames do video
 def VideoBufferCreate():
     WIDTH=400                                           # tamanho optimizado para melhor transmissao
@@ -31,6 +32,7 @@ def VideoBufferCreate():
             os._exit(1)
     print('Connection to', cAddress, 'is closed...')
     vid.release()                                       # libera video auxiliar
+
 
 # Transporte dos frames do video por UDP
 def VideoStreaming():
@@ -69,6 +71,7 @@ def VideoStreaming():
         if key == ord('q'):	                                                                    # caso 'q' seja apertado, fecha video
             os._exit(1)	
 
+
 # Transporte do audio do video por TCP
 def AudioStreaming():
     global audiofile
@@ -89,11 +92,12 @@ def AudioStreaming():
                 audioData = struct.pack("Q", len(a)) + a
                 clientSocket.sendall(audioData)                 # envia pacote com todo audio para o cliente
 
+
 # Download de arquivos via TCP
 def SendToClient():
     stcSocket = socket.socket()
     stcSocket.bind((serverIP, serverPort))                      # socket para envio dos dados
-    stcSocket.listen(1)
+    stcSocket.listen(5)
     clientSocket,addr = stcSocket.accept()                      # verifica se a conexao foi estabelecida
 
     with open(filename, 'rb') as filedata:                      # abre arquivo desejado
@@ -107,7 +111,6 @@ def SendToClient():
 # Main
 #variaveis de buffer
 global audiofile
-videoBuffer = queue.Queue(maxsize=10)
 BUFFSIZE = 65536
 
 # dados de conexao
@@ -134,6 +137,8 @@ while True:
 
         if(os.path.isfile(filename)):
             if('.mp4' in filename):                                         # caso o arquivo seja um video
+                videoBuffer = queue.Queue(maxsize=10)
+
                 audiofile = "temp.wav"
                 print(filename)
 
@@ -169,6 +174,7 @@ while True:
 
 
     elif(filen[0] == 'GET'):                                                # caso de download de arquivo
+        print('entrou aqui')
         if(os.path.isfile(filename)):
             SendToClient()                                                  # tenta enviar arquivo via TCP para o cliente
             print(filename, 'enviado com sucesso!\n')
